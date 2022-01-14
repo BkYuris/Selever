@@ -23,7 +23,6 @@ import flixel.FlxSprite;
 import openfl.display.BlendMode;
 import openfl.utils.Assets;
 import flixel.math.FlxMath;
-import flixel.addons.transition.FlxTransitionableState;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -39,8 +38,8 @@ import Discord;
 using StringTools;
 
 class FunkinLua {
-	public static var Function_Stop = 1;
-	public static var Function_Continue = 0;
+    public static var Function_Stop = "Function_Stop";
+	public static var Function_Continue = "Function_Continue";
 
 	#if LUA_ALLOWED
 	public var lua:State = null;
@@ -77,8 +76,8 @@ class FunkinLua {
 		#end
 
 		// Lua shit
-		set('Function_Stop', Function_Stop);
-		set('Function_Continue', Function_Continue);
+        set('Function_Stop', "Function_Stop");
+        set('Function_Continue', "Function_Continue");
 		set('luaDebugMode', false);
 		set('luaDeprecatedWarnings', true);
 		set('inChartEditor', false);
@@ -174,7 +173,7 @@ class FunkinLua {
 				cervix = Paths.modFolders(cervix);
 				doPush = true;
 			} else {
-				cervix = Paths.getPreloadPath(cervix);
+				cervix = Main.getDataPath() + Paths.getPreloadPath(cervix);
 				if(FileSystem.exists(cervix)) {
 					doPush = true;
 				}
@@ -684,32 +683,6 @@ class FunkinLua {
 			PlayState.instance.KillNotes();
 			PlayState.instance.endSong();
 		});
-		Lua_helper.add_callback(lua, "restartSong", function(skipTransition:Bool) {
-			PlayState.instance.persistentUpdate = false;
-			PauseSubState.restartSong(skipTransition);
-		});
-		Lua_helper.add_callback(lua, "exitSong", function(skipTransition:Bool) {
-			if(skipTransition)
-			{
-				FlxTransitionableState.skipNextTransIn = true;
-				FlxTransitionableState.skipNextTransOut = true;
-			}
-
-			PlayState.cancelMusicFadeTween();
-			CustomFadeTransition.nextCamera = PlayState.instance.camOther;
-			if(FlxTransitionableState.skipNextTransIn)
-				CustomFadeTransition.nextCamera = null;
-
-			if(PlayState.isStoryMode)
-				MusicBeatState.switchState(new StoryMenuState());
-			else
-				MusicBeatState.switchState(new FreeplayState());
-
-			FlxG.sound.playMusic(Paths.music('freakyMenu'));
-			PlayState.changedDifficulty = false;
-			PlayState.chartingMode = false;
-			PlayState.instance.transitioning = true;
-		});
 		Lua_helper.add_callback(lua, "getSongPosition", function() {
 			return Conductor.songPosition;
 		});
@@ -763,16 +736,6 @@ class FunkinLua {
 		});
 		Lua_helper.add_callback(lua, "cameraShake", function(camera:String, intensity:Float, duration:Float) {
 			cameraFromString(camera).shake(intensity, duration);
-		});
-		Lua_helper.add_callback(lua, "cameraFlash", function(camera:String, color:String, duration:Float,forced:Bool) {
-			var colorNum:Int = Std.parseInt(color);
-			if(!color.startsWith('0x')) colorNum = Std.parseInt('0xff' + color);
-			cameraFromString(camera).flash(colorNum, duration,null,forced);
-		});
-		Lua_helper.add_callback(lua, "cameraFade", function(camera:String, color:String, duration:Float,forced:Bool) {
-			var colorNum:Int = Std.parseInt(color);
-			if(!color.startsWith('0x')) colorNum = Std.parseInt('0xff' + color);
-			cameraFromString(camera).fade(colorNum, duration,false,null,forced);
 		});
 		Lua_helper.add_callback(lua, "setRatingPercent", function(value:Float) {
 			PlayState.instance.ratingPercent = value;
@@ -987,13 +950,6 @@ class FunkinLua {
 			}
 			luaTrace('Couldnt find object: ' + obj);
 		});
-		Lua_helper.add_callback(lua, "updateHitboxFromGroup", function(group:String, index:Int) {
-			if(Std.isOfType(Reflect.getProperty(getInstance(), group), FlxTypedGroup)) {
-				Reflect.getProperty(getInstance(), group).members[index].updateHitbox();
-				return;
-			}
-			Reflect.getProperty(getInstance(), group)[index].updateHitbox();
-		});
 		Lua_helper.add_callback(lua, "removeLuaSprite", function(tag:String, destroy:Bool = true) {
 			if(!PlayState.instance.modchartSprites.exists(tag)) {
 				return;
@@ -1074,45 +1030,6 @@ class FunkinLua {
 			}
 			luaTrace("Object " + obj + " doesn't exist!");
 		});
-		Lua_helper.add_callback(lua, "isColliding", function(obj1:String, obj2:String) {
-			var namesArray:Array<String> = [obj1, obj2];
-			var objectsArray:Array<FlxSprite> = [];
-			for (i in 0...namesArray.length)
-			{
-				if(PlayState.instance.modchartSprites.exists(namesArray[i])) {
-					objectsArray.push(PlayState.instance.modchartSprites.get(namesArray[i]));
-				}
-				else if(PlayState.instance.modchartTexts.exists(namesArray[i])) {
-					objectsArray.push(PlayState.instance.modchartTexts.get(namesArray[i]));
-				}
-				else {
-					objectsArray.push(Reflect.getProperty(getInstance(), namesArray[i]));
-				}
-			}
-
-			if(!objectsArray.contains(null))
-			{
-				return FlxG.collide(objectsArray[0], objectsArray[1]);
-			}
-			return false;
-		});
-		Lua_helper.add_callback(lua, "getPixelColor", function(obj:String, x:Int, y:Int) {
-			var spr:FlxSprite = null;
-			if(PlayState.instance.modchartSprites.exists(obj)) {
-				spr = PlayState.instance.modchartSprites.get(obj);
-			} else if(PlayState.instance.modchartTexts.exists(obj)) {
-				spr = PlayState.instance.modchartTexts.get(obj);
-			} else {
-				spr = Reflect.getProperty(getInstance(), obj);
-			}
-
-			if(spr != null)
-			{
-				if(spr.framePixels != null) spr.framePixels.getPixel32(x, y);
-				return spr.pixels.getPixel32(x, y);
-			}
-			return 0;
-		});
 		Lua_helper.add_callback(lua, "getRandomInt", function(min:Int, max:Int = FlxMath.MAX_VALUE_INT, exclude:String = '') {
 			var excludeArray:Array<String> = exclude.split(',');
 			var toExclude:Array<Int> = [];
@@ -1135,16 +1052,13 @@ class FunkinLua {
 			return FlxG.random.bool(chance);
 		});
 		Lua_helper.add_callback(lua, "startDialogue", function(dialogueFile:String, music:String = null) {
-			/*var path:String = Paths.modsJson(Paths.formatToSongPath(PlayState.SONG.song) + '/' + dialogueFile);
+			var path:String = Paths.modsJson(Paths.formatToSongPath(PlayState.SONG.song) + '/' + dialogueFile);
 			if(!FileSystem.exists(path)) {
 				path = Paths.json(Paths.formatToSongPath(PlayState.SONG.song) + '/' + dialogueFile);
 			}
-			luaTrace('Trying to load dialogue: ' + path);*/
-			//Language support + Selever compat
-			var path:String = PlayState.instance.searchPsychDialogue(PlayState.SONG.song, dialogueFile);
-			//if(FileSystem.exists(path)) {
-			if (path != null) {
-				luaTrace('Trying to load dialogue: ' + path);
+			luaTrace('Trying to load dialogue: ' + path);
+
+			if(FileSystem.exists(path)) {
 				var shit:DialogueFile = DialogueBoxPsych.parseDialogue(path);
 				if(shit.dialogue.length > 0) {
 					PlayState.instance.startDialogue(shit, music);
@@ -1162,20 +1076,14 @@ class FunkinLua {
 			}
 		});
 		Lua_helper.add_callback(lua, "startVideo", function(videoFile:String) {
-			#if VIDEOS_ALLOWED
 			if(FileSystem.exists(Paths.video(videoFile))) {
 				PlayState.instance.startVideo(videoFile);
 			} else {
 				luaTrace('Video file not found: ' + videoFile);
 			}
-			#else
-			if(PlayState.instance.endingSong) {
-				PlayState.instance.endSong();
-			} else {
-				PlayState.instance.startCountdown();
-			}
-			#end
 		});
+		
+		
 		
 		Lua_helper.add_callback(lua, "playMusic", function(sound:String, volume:Float = 1, loop:Bool = false) {
 			FlxG.sound.playMusic(Paths.music(sound), volume, loop);
@@ -1286,9 +1194,11 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "close", function(printMessage:Bool) {
 			if(!gonnaClose) {
 				if(printMessage) {
-					luaTrace('Stopping lua script: ' + scriptName);
+					luaTrace('Stopping lua script in 100ms: ' + scriptName);
 				}
-				PlayState.instance.closeLuas.push(this);
+				new FlxTimer().start(0.1, function(tmr:FlxTimer) {
+					stop();
+				});
 			}
 			gonnaClose = true;
 		});
@@ -1548,7 +1458,9 @@ class FunkinLua {
 			luaTrace('musicFadeOut is deprecated! Use soundFadeOut instead.', false, true);
 		});
 
+        #if desktop
 		Discord.DiscordClient.addLuaCallbacks(lua);
+		#end
 
 		call('onCreate', []);
 		#end
@@ -1808,7 +1720,7 @@ class FunkinLua {
 		if(accessedProps != null) {
 			accessedProps.clear();
 		}
-
+		//PlayState.instance.removeLua(this);
 		Lua.close(lua);
 		lua = null;
 		#end
