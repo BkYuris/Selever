@@ -199,6 +199,7 @@ class Alphabet extends FlxSpriteGroup
 	var consecutiveSpaces:Int = 0;
 
 	var typeTimer:FlxTimer = null;
+	public var soundPath:String = Paths.sound('dialogue'); //
 	public function startTypedText(speed:Float):Void
 	{
 		_finalText = text;
@@ -210,8 +211,10 @@ class Alphabet extends FlxSpriteGroup
 			while(!finishedText) { 
 				timerCheck();
 			}
-			if(dialogueSound != null) dialogueSound.stop();
-			dialogueSound = FlxG.sound.play(Paths.sound('dialogue'));
+			if (dialogueSound != null) dialogueSound.stop();
+			dialogueSound = FlxG.sound.load(soundPath); //
+			dialogueSound.play();
+			//dialogueSound = FlxG.sound.play(Paths.sound('dialogue')); //
 		} else {
 			typeTimer = new FlxTimer().start(0.1, function(tmr:FlxTimer) {
 				typeTimer = new FlxTimer().start(speed, function(tmr:FlxTimer) {
@@ -308,8 +311,10 @@ class Alphabet extends FlxSpriteGroup
 				letter.x += 90;
 
 				if(tmr != null) {
-					if(dialogueSound != null) dialogueSound.stop();
-					dialogueSound = FlxG.sound.play(Paths.sound('dialogue'));
+					if (dialogueSound != null) dialogueSound.stop();
+					dialogueSound = FlxG.sound.load(soundPath); //
+					dialogueSound.play();
+					//dialogueSound = FlxG.sound.play(Paths.sound('dialogue')); //
 				}
 
 				add(letter);
@@ -358,11 +363,11 @@ class Alphabet extends FlxSpriteGroup
 
 class AlphaCharacter extends FlxSprite
 {
-	public static var alphabet:String = "abcdefghijklmnopqrstuvwxyz";
+	public static var alphabet:String = "abcdefghijklmnopqrstuvwxyzñáéíóúü"; //
 
 	public static var numbers:String = "1234567890";
 
-	public static var symbols:String = "|~#$%()*+-:;<=>@[]^_.,'!?";
+	public static var symbols:String = "|~#$%()*+-:;<=>@[]^_.,'!?¡¿"; //
 
 	public var row:Int = 0;
 
@@ -479,6 +484,10 @@ class AlphaCharacter extends FlxSprite
 				animation.addByPrefix(letter, 'question mark', 24);
 			case "!":
 				animation.addByPrefix(letter, 'exclamation point', 24);
+			case "¿":
+				animation.addByPrefix(letter, 'opening question mark', 24);
+			case "¡":
+				animation.addByPrefix(letter, 'opening exclamation point', 24);
 			case ",":
 				animation.addByPrefix(letter, 'comma', 24);
 			default:

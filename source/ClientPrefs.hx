@@ -27,11 +27,7 @@ class ClientPrefs {
 	public static var scoreZoom:Bool = true;
 	public static var noReset:Bool = false;
 	public static var healthBarAlpha:Float = 1;
-	#if mobile
-	public static var controllerMode:Bool = true;
-	#else
 	public static var controllerMode:Bool = false;
-	#end
 	public static var gameplaySettings:Map<String, Dynamic> = [
 		'scrollspeed' => 1.0,
 		'songspeed' => 1.0,
@@ -48,9 +44,9 @@ class ClientPrefs {
 	
 	public static var ratingOffset:Int = 0;
 	public static var sickWindow:Int = 45;
-	public static var goodWindow:Int = 90;
-	public static var badWindow:Int = 135;
-	public static var safeFrames:Float = 10;
+	public static var goodWindow:Int = 75; //90
+	public static var badWindow:Int = 100; //135
+	public static var safeFrames:Float = 8; //10
 
 	//Every key has two binds, add your key bind down here and then add your control on options/ControlsSubState.hx and Controls.hx
 	public static var keyBinds:Map<String, Array<FlxKey>> = [
@@ -120,7 +116,7 @@ class ClientPrefs {
 		FlxG.save.flush();
 
 		var save:FlxSave = new FlxSave();
-		save.bind('controls_v2', 'ninjamuffin99'); //Placing this in a separate save so that it can be manually deleted without removing your Score and stuff
+		save.bind('controls_v2', 'savedata'); //Placing this in a separate save so that it can be manually deleted without removing your Score and stuff
 		save.data.customControls = keyBinds;
 		save.flush();
 		FlxG.log.add("Settings saved!");
@@ -240,7 +236,7 @@ class ClientPrefs {
 		}
 
 		var save:FlxSave = new FlxSave();
-		save.bind('controls_v2', 'ninjamuffin99');
+		save.bind('controls_v2', 'savedata');
 		if(save != null && save.data.customControls != null) {
 			var loadedControls:Map<String, Array<FlxKey>> = save.data.customControls;
 			for (control => keys in loadedControls) {
