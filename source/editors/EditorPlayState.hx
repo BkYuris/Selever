@@ -19,9 +19,6 @@ import flixel.util.FlxTimer;
 import flixel.input.keyboard.FlxKey;
 import openfl.events.KeyboardEvent;
 import FunkinLua;
-#if mobileC
-import ui.Mobilecontrols;
-#end
 
 using StringTools;
 
@@ -43,10 +40,6 @@ class EditorPlayState extends MusicBeatState
 
 	var startOffset:Float = 0;
 	var startPos:Float = 0;
-
-	#if mobileC
-	var mcontrols:Mobilecontrols; 
-	#end
 
 	public function new(startPos:Float) {
 		this.startPos = startPos;
@@ -158,26 +151,6 @@ class EditorPlayState extends MusicBeatState
 		tipText.scrollFactor.set();
 		add(tipText);
 		FlxG.mouse.visible = false;
-
-		#if mobileC
-			mcontrols = new Mobilecontrols();
-			switch (mcontrols.mode)
-			{
-				case VIRTUALPAD_RIGHT | VIRTUALPAD_LEFT | VIRTUALPAD_CUSTOM:
-					controls.setVirtualPadNOTES(mcontrols._virtualPad, FULL, NONE);
-				case HITBOX:
-					controls.setHitBoxNOTES(mcontrols._hitbox);
-				default:
-			}
-			trackedinputsNOTES = controls.trackedinputsNOTES;
-			controls.trackedinputsNOTES = [];
-
-			add(mcontrols);
-
-			#if mobileC
-		    addVirtualPad(NONE, B);
-		    #end
-		#end	
 
 		//sayGo();
 		if(!ClientPrefs.controllerMode)
@@ -342,7 +315,7 @@ class EditorPlayState extends MusicBeatState
 	}
 
 	override function update(elapsed:Float) {
-		if (FlxG.keys.justPressed.ESCAPE #if mobileC || _virtualpad.buttonB.justPressed #end)
+		if (FlxG.keys.justPressed.ESCAPE)
 		{
 			FlxG.sound.music.pause();
 			vocals.pause();
@@ -692,7 +665,7 @@ class EditorPlayState extends MusicBeatState
 						onKeyPress(new KeyboardEvent(KeyboardEvent.KEY_DOWN, true, true, -1, keysArray[i][0]));
 				}
 			}
-		}	
+		}
 
 		// FlxG.watch.addQuick('asdfa', upP);
 		if (generatedMusic)
