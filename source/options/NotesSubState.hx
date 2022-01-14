@@ -91,10 +91,6 @@ class NotesSubState extends MusicBeatSubstate
 		add(hsbText);
 
 		changeSelection();
-
-		#if mobileC
-        addVirtualPad(FULL, A_B_C);
-        #end
 	}
 
 	var changingNote:Bool = false;
@@ -179,7 +175,7 @@ class NotesSubState extends MusicBeatSubstate
 
 		if (controls.BACK || (changingNote && controls.ACCEPT)) {
 			if(!changingNote) {
-				MusicBeatState.resetState();//FUCK
+				close();
 			} else {
 				changeSelection();
 			}
